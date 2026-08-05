@@ -1,0 +1,469 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Skyra Data — Admin</title>
+    <style>
+      :root {
+        --brand: #5b2eff;
+        --brand-soft: #efebff;
+        --bg: #f7f7f8;
+        --surface: #ffffff;
+        --text: #111114;
+        --muted: #6b6b72;
+        --border: #e8e8ec;
+        --green: #1b9e5a;
+        --green-soft: #e7f6ee;
+        --red: #d24a43;
+        --red-soft: #fbeae9;
+        --amber: #c2870b;
+        --amber-soft: #fbf2dc;
+        --radius: 12px;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        font-size: 14px;
+      }
+      button { font-family: inherit; cursor: pointer; }
+      input, select {
+        font-family: inherit;
+        font-size: 14px;
+        padding: 9px 11px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--surface);
+        color: var(--text);
+        width: 100%;
+      }
+      input:focus, select:focus { outline: none; border-color: var(--brand); }
+      .btn {
+        background: var(--brand); color: #fff; border: none; border-radius: 8px;
+        padding: 9px 16px; font-weight: 600; font-size: 14px;
+      }
+      .btn:hover { background: #4a22e6; }
+      .btn.secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+      .btn.danger { background: var(--red-soft); color: var(--red); }
+      .btn.small { padding: 6px 10px; font-size: 13px; }
+      .muted { color: var(--muted); }
+      .hidden { display: none !important; }
+
+      /* Login */
+      #login {
+        min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px;
+      }
+      #login .card { width: 100%; max-width: 380px; background: var(--surface);
+        border: 1px solid var(--border); border-radius: var(--radius); padding: 28px;
+        box-shadow: 0 8px 30px rgba(11,15,14,0.06); }
+      .brand-mark { width: 44px; height: 44px; border-radius: 12px; background: var(--brand);
+        color: #fff; font-weight: 800; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+      .field { margin-bottom: 14px; }
+      .field label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+      .error { color: var(--red); font-size: 13px; margin-top: 8px; }
+
+      /* App shell */
+      #app { display: flex; min-height: 100vh; }
+      aside { width: 220px; background: var(--surface); border-right: 1px solid var(--border);
+        padding: 20px 14px; position: sticky; top: 0; height: 100vh; }
+      aside .logo { display: flex; align-items: center; gap: 10px; padding: 0 8px 20px; }
+      nav a { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px;
+        color: var(--text); text-decoration: none; font-weight: 500; margin-bottom: 2px; }
+      nav a.active { background: var(--brand-soft); color: var(--brand); }
+      nav a:hover:not(.active) { background: var(--bg); }
+      main { flex: 1; padding: 28px 32px; max-width: 1100px; }
+      .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+      h1 { font-size: 22px; margin: 0; font-weight: 600; }
+      h2 { font-size: 17px; margin: 0 0 14px; font-weight: 600; }
+
+      .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 14px; }
+      .stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
+      .stat .n { font-size: 26px; font-weight: 700; }
+      .stat .l { color: var(--muted); font-size: 13px; margin-top: 2px; }
+
+      .panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+        padding: 18px; margin-bottom: 20px; }
+      table { width: 100%; border-collapse: collapse; }
+      th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--border); font-size: 13px; vertical-align: middle; }
+      th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.4px; }
+      tr:last-child td { border-bottom: none; }
+
+      .badge { display: inline-block; padding: 3px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+      .b-green { background: var(--green-soft); color: var(--green); }
+      .b-red { background: var(--red-soft); color: var(--red); }
+      .b-amber { background: var(--amber-soft); color: var(--amber); }
+      .b-brand { background: var(--brand-soft); color: var(--brand); }
+      .b-gray { background: var(--bg); color: var(--muted); }
+
+      .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
+      .row .field { flex: 1; min-width: 120px; margin: 0; }
+      .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+        background: var(--text); color: #fff; padding: 12px 18px; border-radius: 10px; font-size: 14px;
+        opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 50; }
+      .toast.show { opacity: 1; }
+      .toast.err { background: var(--red); }
+      .inline-input { width: 90px; padding: 6px 8px; }
+      .switch { display: inline-flex; align-items: center; gap: 6px; }
+      .dev-note { background: var(--amber-soft); color: #6a4b00; padding: 10px 14px; border-radius: 10px;
+        font-size: 13px; margin-bottom: 18px; }
+      @media (max-width: 720px) {
+        aside { display: none; }
+        main { padding: 18px; }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- LOGIN -->
+    <div id="login">
+      <div class="card">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+          <div class="brand-mark">S</div>
+          <div>
+            <div style="font-weight:700;font-size:16px">Skyra Data</div>
+            <div class="muted" style="font-size:13px">Admin dashboard</div>
+          </div>
+        </div>
+        <form id="loginForm">
+          <div class="field">
+            <label>Email</label>
+            <input id="email" type="email" autocomplete="username" placeholder="admin@skyradata.local" required />
+          </div>
+          <div class="field">
+            <label>Password</label>
+            <input id="password" type="password" autocomplete="current-password" placeholder="••••••••" required />
+          </div>
+          <button class="btn" style="width:100%" type="submit">Sign in</button>
+          <div class="error hidden" id="loginError"></div>
+        </form>
+      </div>
+    </div>
+
+    <!-- APP -->
+    <div id="app" class="hidden">
+      <aside>
+        <div class="logo">
+          <div class="brand-mark" style="width:32px;height:32px;font-size:14px">S</div>
+          <strong>Skyra Data</strong>
+        </div>
+        <nav id="nav">
+          <a data-view="overview" class="active">Overview</a>
+          <a data-view="bundles">Bundles</a>
+          <a data-view="networks">Networks</a>
+          <a data-view="transactions">Transactions</a>
+          <a data-view="tickets">Support</a>
+          <a data-view="settings">Settings</a>
+        </nav>
+        <div style="position:absolute;bottom:20px;left:14px;right:14px">
+          <button class="btn secondary" style="width:100%" id="logout">Sign out</button>
+        </div>
+      </aside>
+      <main>
+        <div class="topbar">
+          <h1 id="viewTitle">Overview</h1>
+          <span class="muted" id="who"></span>
+        </div>
+        <div id="content"></div>
+      </main>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+      const API = '/admin/api';
+      let token = localStorage.getItem('skyra_admin_token') || '';
+      const el = (id) => document.getElementById(id);
+
+      function toast(msg, isErr) {
+        const t = el('toast');
+        t.textContent = msg;
+        t.className = 'toast show' + (isErr ? ' err' : '');
+        setTimeout(() => (t.className = 'toast'), 2200);
+      }
+
+      async function api(path, opts = {}) {
+        const res = await fetch(API + path, {
+          ...opts,
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: 'Bearer ' + token } : {}),
+            ...(opts.headers || {}),
+          },
+        });
+        if (res.status === 401) { logout(); throw new Error('Session expired'); }
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.message || 'Request failed');
+        return data;
+      }
+
+      /* Auth */
+      el('loginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        el('loginError').classList.add('hidden');
+        try {
+          const data = await api('/login', {
+            method: 'POST',
+            body: JSON.stringify({ email: el('email').value, password: el('password').value }),
+          });
+          token = data.token;
+          localStorage.setItem('skyra_admin_token', token);
+          boot();
+        } catch (err) {
+          el('loginError').textContent = err.message;
+          el('loginError').classList.remove('hidden');
+        }
+      });
+
+      function logout() {
+        token = '';
+        localStorage.removeItem('skyra_admin_token');
+        el('app').classList.add('hidden');
+        el('login').classList.remove('hidden');
+      }
+      el('logout').addEventListener('click', logout);
+
+      /* Navigation */
+      const views = {};
+      document.querySelectorAll('#nav a').forEach((a) => {
+        a.addEventListener('click', () => selectView(a.dataset.view));
+      });
+      function selectView(name) {
+        document.querySelectorAll('#nav a').forEach((a) => a.classList.toggle('active', a.dataset.view === name));
+        el('viewTitle').textContent = a_title(name);
+        views[name]();
+      }
+      function a_title(n) {
+        return { overview: 'Overview', bundles: 'Bundles', networks: 'Networks', transactions: 'Transactions', tickets: 'Support', settings: 'Settings' }[n];
+      }
+      const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+      const money = (n) => 'GHS ' + Number(n).toFixed(2);
+
+      function statusBadge(s) {
+        const map = {
+          SUCCESS: 'b-green', FAILED: 'b-red', CANCELLED: 'b-gray', REFUNDED: 'b-amber', REFUND_PENDING: 'b-amber',
+        };
+        return '<span class="badge ' + (map[s] || 'b-brand') + '">' + esc(s) + '</span>';
+      }
+
+      /* Overview */
+      views.overview = async () => {
+        el('content').innerHTML = '<div class="muted">Loading…</div>';
+        const o = await api('/overview');
+        el('content').innerHTML =
+          '<div class="grid">' +
+          [
+            ['Revenue (success)', money(o.revenue)],
+            ['Orders', o.orders],
+            ['Successful', o.successful],
+            ['Bundles', o.bundles],
+            ['Networks', o.networks],
+            ['Open tickets', o.openTickets],
+          ]
+            .map((s) => '<div class="stat"><div class="n">' + esc(s[1]) + '</div><div class="l">' + s[0] + '</div></div>')
+            .join('') +
+          '</div>' +
+          '<p class="muted" style="margin-top:18px">Payment provider: <strong>' + esc(o.paymentProvider) + '</strong></p>';
+      };
+
+      /* Bundles */
+      views.bundles = async () => {
+        el('content').innerHTML = '<div class="muted">Loading…</div>';
+        const { bundles } = await api('/bundles');
+        const { networks } = await api('/networks');
+        const netOpts = networks.map((n) => '<option value="' + n.code + '">' + esc(n.name) + '</option>').join('');
+
+        let html =
+          '<div class="panel"><h2>Add a bundle</h2>' +
+          '<div class="row">' +
+          '<div class="field"><label>Network</label><select id="nb_net">' + netOpts + '</select></div>' +
+          '<div class="field"><label>Name</label><input id="nb_name" placeholder="1 GB" /></div>' +
+          '<div class="field"><label>Volume</label><input id="nb_vol" type="number" placeholder="1" /></div>' +
+          '<div class="field"><label>Unit</label><select id="nb_unit"><option>GB</option><option>MB</option></select></div>' +
+          '<div class="field"><label>Price (GHS)</label><input id="nb_price" type="number" step="0.01" placeholder="10" /></div>' +
+          '<div class="field"><label>Validity</label><input id="nb_val" placeholder="24 hours" /></div>' +
+          '<div class="field"><label>Badge</label><input id="nb_badge" placeholder="Popular (optional)" /></div>' +
+          '<button class="btn" id="nb_add">Add</button>' +
+          '</div></div>';
+
+        const byNet = {};
+        bundles.forEach((b) => { (byNet[b.network] = byNet[b.network] || []).push(b); });
+        Object.keys(byNet).forEach((code) => {
+          html += '<div class="panel"><h2>' + esc(code) + '</h2><table><thead><tr>' +
+            '<th>Name</th><th>Volume</th><th>Price</th><th>Validity</th><th>Badge</th><th>Available</th><th></th>' +
+            '</tr></thead><tbody>';
+          byNet[code].forEach((b) => {
+            html += '<tr data-id="' + b.id + '">' +
+              '<td><input class="inline-input f-name" style="width:110px" value="' + esc(b.name) + '"/></td>' +
+              '<td>' + esc(b.volume) + ' ' + esc(b.unit) + '</td>' +
+              '<td><input class="inline-input f-price" type="number" step="0.01" value="' + esc(b.price) + '"/></td>' +
+              '<td><input class="inline-input f-val" style="width:100px" value="' + esc(b.validity) + '"/></td>' +
+              '<td><input class="inline-input f-badge" style="width:90px" value="' + esc(b.badge || '') + '"/></td>' +
+              '<td><input type="checkbox" class="f-avail" ' + (b.available ? 'checked' : '') + '/></td>' +
+              '<td style="white-space:nowrap">' +
+              '<button class="btn small f-save">Save</button> ' +
+              '<button class="btn small danger f-del">Delete</button></td>' +
+              '</tr>';
+          });
+          html += '</tbody></table></div>';
+        });
+        el('content').innerHTML = html;
+
+        el('nb_add').onclick = async () => {
+          try {
+            await api('/bundles', {
+              method: 'POST',
+              body: JSON.stringify({
+                network: el('nb_net').value,
+                name: el('nb_name').value,
+                volume: Number(el('nb_vol').value),
+                unit: el('nb_unit').value,
+                price: Number(el('nb_price').value),
+                validity: el('nb_val').value,
+                badge: el('nb_badge').value || null,
+              }),
+            });
+            toast('Bundle added');
+            views.bundles();
+          } catch (e) { toast(e.message, true); }
+        };
+
+        el('content').querySelectorAll('tr[data-id]').forEach((tr) => {
+          const id = tr.dataset.id;
+          tr.querySelector('.f-save').onclick = async () => {
+            try {
+              await api('/bundles/' + id, {
+                method: 'PATCH',
+                body: JSON.stringify({
+                  name: tr.querySelector('.f-name').value,
+                  price: Number(tr.querySelector('.f-price').value),
+                  validity: tr.querySelector('.f-val').value,
+                  badge: tr.querySelector('.f-badge').value || null,
+                  available: tr.querySelector('.f-avail').checked,
+                }),
+              });
+              toast('Saved');
+            } catch (e) { toast(e.message, true); }
+          };
+          tr.querySelector('.f-del').onclick = async () => {
+            if (!confirm('Delete this bundle?')) return;
+            try { await api('/bundles/' + id, { method: 'DELETE' }); toast('Deleted'); views.bundles(); }
+            catch (e) { toast(e.message, true); }
+          };
+        });
+      };
+
+      /* Networks */
+      views.networks = async () => {
+        el('content').innerHTML = '<div class="muted">Loading…</div>';
+        const { networks } = await api('/networks');
+        let html = '<div class="panel"><table><thead><tr><th>Code</th><th>Name</th><th>Status</th><th>Logo URL</th><th></th></tr></thead><tbody>';
+        networks.forEach((n) => {
+          html += '<tr data-code="' + n.code + '">' +
+            '<td><strong>' + esc(n.code) + '</strong></td>' +
+            '<td><input class="inline-input f-name" style="width:140px" value="' + esc(n.name) + '"/></td>' +
+            '<td><select class="f-status">' +
+            ['available', 'unavailable', 'maintenance'].map((s) => '<option ' + (n.status === s ? 'selected' : '') + '>' + s + '</option>').join('') +
+            '</select></td>' +
+            '<td><input class="inline-input f-logo" style="width:200px" value="' + esc(n.logo || '') + '" placeholder="https://…"/></td>' +
+            '<td><button class="btn small f-save">Save</button></td>' +
+            '</tr>';
+        });
+        html += '</tbody></table></div>';
+        el('content').innerHTML = html;
+        el('content').querySelectorAll('tr[data-code]').forEach((tr) => {
+          tr.querySelector('.f-save').onclick = async () => {
+            try {
+              await api('/networks/' + tr.dataset.code, {
+                method: 'PATCH',
+                body: JSON.stringify({
+                  name: tr.querySelector('.f-name').value,
+                  status: tr.querySelector('.f-status').value,
+                  logo: tr.querySelector('.f-logo').value || null,
+                }),
+              });
+              toast('Saved');
+            } catch (e) { toast(e.message, true); }
+          };
+        });
+      };
+
+      /* Transactions */
+      views.transactions = async () => {
+        el('content').innerHTML =
+          '<div class="panel"><div class="row" style="margin-bottom:14px">' +
+          '<div class="field"><label>Search</label><input id="tx_q" placeholder="reference, number, network, status"/></div>' +
+          '<button class="btn secondary" id="tx_go">Search</button></div>' +
+          '<div id="tx_list" class="muted">Loading…</div></div>';
+        const load = async () => {
+          const q = el('tx_q').value.trim();
+          const { orders } = await api('/orders' + (q ? '?q=' + encodeURIComponent(q) : ''));
+          if (!orders.length) { el('tx_list').innerHTML = '<div class="muted">No transactions.</div>'; return; }
+          el('tx_list').innerHTML = '<table><thead><tr><th>Ref</th><th>Network</th><th>Bundle</th><th>Recipient</th><th>Amount</th><th>Status</th><th>Date</th><th></th></tr></thead><tbody>' +
+            orders.map((o) =>
+              '<tr><td>' + esc(o.reference) + '</td><td>' + esc(o.network) + '</td><td>' + esc(o.bundle.name) + '</td>' +
+              '<td>' + esc(o.recipient) + '</td><td>' + money(o.total) + '</td><td>' + statusBadge(o.status) + '</td>' +
+              '<td class="muted">' + new Date(o.createdAt).toLocaleString() + '</td>' +
+              '<td>' + (o.status === 'FAILED' ? '<button class="btn small tx-retry" data-id="' + o.id + '">Retry</button>' : '') + '</td></tr>'
+            ).join('') + '</tbody></table>';
+          el('tx_list').querySelectorAll('.tx-retry').forEach((b) => {
+            b.onclick = async () => { try { await api('/orders/' + b.dataset.id + '/retry', { method: 'POST' }); toast('Retry queued'); load(); } catch (e) { toast(e.message, true); } };
+          });
+        };
+        el('tx_go').onclick = load;
+        el('tx_q').addEventListener('keydown', (e) => { if (e.key === 'Enter') load(); });
+        load();
+      };
+
+      /* Tickets */
+      views.tickets = async () => {
+        el('content').innerHTML = '<div class="muted">Loading…</div>';
+        const { tickets } = await api('/tickets');
+        if (!tickets.length) { el('content').innerHTML = '<div class="panel muted">No support tickets.</div>'; return; }
+        el('content').innerHTML = '<div class="panel"><table><thead><tr><th>Ref</th><th>Type</th><th>Description</th><th>Txn</th><th>Status</th><th>Date</th><th></th></tr></thead><tbody>' +
+          tickets.map((t) =>
+            '<tr data-id="' + t.id + '"><td>' + esc(t.reference) + '</td><td>' + esc(t.issueType) + '</td>' +
+            '<td style="max-width:260px">' + esc(t.description) + '</td><td>' + esc(t.transactionId || '—') + '</td>' +
+            '<td>' + statusBadge(t.status.toUpperCase()) + '</td><td class="muted">' + new Date(t.createdAt).toLocaleDateString() + '</td>' +
+            '<td>' + (t.status !== 'resolved' ? '<button class="btn small t-resolve">Resolve</button>' : '') + '</td></tr>'
+          ).join('') + '</tbody></table></div>';
+        el('content').querySelectorAll('tr[data-id]').forEach((tr) => {
+          const r = tr.querySelector('.t-resolve');
+          if (r) r.onclick = async () => { try { await api('/tickets/' + tr.dataset.id, { method: 'PATCH', body: JSON.stringify({ status: 'resolved' }) }); toast('Resolved'); views.tickets(); } catch (e) { toast(e.message, true); } };
+        });
+      };
+
+      /* Settings */
+      views.settings = async () => {
+        el('content').innerHTML = '<div class="muted">Loading…</div>';
+        const { settings } = await api('/settings');
+        el('content').innerHTML =
+          '<div class="panel" style="max-width:420px"><h2>Settings</h2>' +
+          '<div class="field"><label>Processing fee (GHS)</label><input id="s_fee" type="number" step="0.01" value="' + esc(settings.processingFeeGhs) + '"/></div>' +
+          '<div class="field"><label>USSD short code</label><input id="s_ussd" value="' + esc(settings.ussdShortCode) + '"/></div>' +
+          '<button class="btn" id="s_save">Save settings</button></div>';
+        el('s_save').onclick = async () => {
+          try {
+            await api('/settings', { method: 'PATCH', body: JSON.stringify({ processingFeeGhs: Number(el('s_fee').value), ussdShortCode: el('s_ussd').value }) });
+            toast('Settings saved');
+          } catch (e) { toast(e.message, true); }
+        };
+      };
+
+      /* Boot */
+      async function boot() {
+        try {
+          const me = await api('/me');
+          el('who').textContent = me.email;
+          el('login').classList.add('hidden');
+          el('app').classList.remove('hidden');
+          selectView('overview');
+        } catch {
+          logout();
+        }
+      }
+      if (token) boot();
+    </script>
+  </body>
+</html>

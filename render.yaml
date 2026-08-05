@@ -1,0 +1,37 @@
+# Render blueprint for the Skyra Data backend.
+# Create the service from this file: Render dashboard → New → Blueprint → pick
+# the repo. Free plan. Set the `sync: false` vars in the dashboard after the
+# first deploy (they are secrets / per-account values).
+services:
+  - type: web
+    name: skyra-data-backend
+    runtime: node
+    plan: free
+    # If the backend lives in a subfolder of the repo, set this (else remove):
+    # rootDir: skyra-backend
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      # Keep as "staging" for a mock test deploy. Switch to "production" only
+      # once real Paystack + telecom providers and a real OTP gateway are set —
+      # the server refuses to boot in production with mock providers or dev OTP.
+      - key: NODE_ENV
+        value: staging
+      - key: PAYMENT_PROVIDER
+        value: mock
+      - key: TELECOM_PROVIDER
+        value: mock
+      - key: OTP_DEV_MODE
+        value: "true"
+      - key: CORS_ORIGINS
+        value: "*"
+      - key: JWT_SECRET
+        generateValue: true
+      # Set these in the Render dashboard (Environment tab):
+      - key: DATABASE_URL
+        sync: false
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
